@@ -22,11 +22,11 @@ Runs **fully offline** — no internet connection required in the operating thea
 ## Requirements
 
 All dependencies are in the Anaconda environment on this machine.  
-**Always use `/Users/I028960/anaconda3/bin/python`**, not the system Python.
+**Always use `~/anaconda3/bin/python`**, not the system Python.
 
 ```bash
 # One-time check
-/Users/I028960/anaconda3/bin/python -c "import ultralytics, cv2, torch; print('OK')"
+~/anaconda3/bin/python -c "import ultralytics, cv2, torch; print('OK')"
 ```
 
 ---
@@ -36,14 +36,14 @@ All dependencies are in the Anaconda environment on this machine.
 Converts the Pascal VOC XML annotations to YOLO format and writes `yolo_dataset/`.
 
 ```bash
-cd /Users/I028960/Desktop/Kushal
-/Users/I028960/anaconda3/bin/python prepare_dataset.py
+cd /
+~/anaconda3/bin/python prepare_dataset.py
 ```
 
 Expected output:
 ```
-Converted 411 samples → /Users/I028960/Desktop/Kushal/yolo_dataset
-Wrote /Users/I028960/Desktop/Kushal/yolo_dataset/dataset.yaml
+Converted 411 samples → //yolo_dataset
+Wrote /yolo_dataset/dataset.yaml
 ```
 
 This step is already done — only re-run if you add new images/annotations.
@@ -53,8 +53,8 @@ This step is already done — only re-run if you add new images/annotations.
 ## Step 2 — Train the model
 
 ```bash
-cd /Users/I028960/Desktop/Kushal
-/Users/I028960/anaconda3/bin/python train.py
+cd /
+~/anaconda3/bin/python train.py
 ```
 
 ### Recommended settings by hardware
@@ -102,7 +102,7 @@ Training on Apple Silicon (M1/M2/M3) typically takes:
 ### Live camera (operating theatre)
 
 ```bash
-/Users/I028960/anaconda3/bin/python infer.py --source 0
+~/anaconda3/bin/python infer.py --source 0
 ```
 
 - `0` = built-in webcam. Change to `1`, `2` etc. for an external USB camera.
@@ -111,7 +111,7 @@ Training on Apple Silicon (M1/M2/M3) typically takes:
 ### Single image
 
 ```bash
-/Users/I028960/anaconda3/bin/python infer.py --source path/to/image.jpg
+~/anaconda3/bin/python infer.py --source path/to/image.jpg
 ```
 
 Press any key to advance, **q** to quit.
@@ -119,13 +119,13 @@ Press any key to advance, **q** to quit.
 ### Folder of images
 
 ```bash
-/Users/I028960/anaconda3/bin/python infer.py --source path/to/folder/
+~/anaconda3/bin/python infer.py --source path/to/folder/
 ```
 
 ### Video file
 
 ```bash
-/Users/I028960/anaconda3/bin/python infer.py --source path/to/video.mp4
+~/anaconda3/bin/python infer.py --source path/to/video.mp4
 ```
 
 ### Save annotated output
@@ -133,14 +133,14 @@ Press any key to advance, **q** to quit.
 Add `--save` to write annotated files alongside the originals:
 
 ```bash
-/Users/I028960/anaconda3/bin/python infer.py --source video.mp4 --save
+~/anaconda3/bin/python infer.py --source video.mp4 --save
 # → saves video_detected.mp4
 ```
 
 ### Use a specific model
 
 ```bash
-/Users/I028960/anaconda3/bin/python infer.py \
+~/anaconda3/bin/python infer.py \
   --source 0 \
   --weights runs/surgical/weights/best.pt
 ```
@@ -154,10 +154,10 @@ Add `--save` to write annotated files alongside the originals:
 
 ```bash
 # Stricter — fewer but more confident detections
-/Users/I028960/anaconda3/bin/python infer.py --source 0 --conf 0.5
+~/anaconda3/bin/python infer.py --source 0 --conf 0.5
 
 # More permissive — catches partially hidden instruments
-/Users/I028960/anaconda3/bin/python infer.py --source 0 --conf 0.25
+~/anaconda3/bin/python infer.py --source 0 --conf 0.25
 ```
 
 ---

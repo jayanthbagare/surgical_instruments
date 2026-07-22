@@ -46,6 +46,28 @@ def test_static_assets(monkeypatch):
     assert client.get("/static/styles.css").status_code == 200
 
 
+def test_video_panel_is_not_hidden_by_default(monkeypatch):
+    """Regression: clicking the Video tab showed nothing because the panel
+    carried a `hidden` class whose `display:none !important` beat
+    `.panel.active`. The panel must rely solely on `.panel` / `.panel.active`.
+    """
+    client = _client(monkeypatch)
+    html = client.get("/").text
+    # Locate the video panel tag and assert it has no `hidden` class.
+    idx = html.index('id="panel-video"')
+    tag = html[idx - 40 : idx + 80]
+    assert 'class="panel"' in tag or 'class="panel active"' in tag
+    assert "hidden" not in tag
+
+
+def test_app_js_toggles_hidden_class(monkeypatch):
+    """The tab switcher must remove `hidden` from the activated panel so
+    visibility is robust regardless of the initial markup."""
+    client = _client(monkeypatch)
+    js = client.get("/static/app.js").text
+    assert 'classList.toggle("hidden"' in js
+
+
 def test_infer_image(monkeypatch, fake_model):
     client = _client(monkeypatch, model=fake_model)
     files = {"file": ("img.jpg", _jpeg_bytes(), "image/jpeg")}

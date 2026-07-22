@@ -220,6 +220,53 @@ python infer.py --weights runs/surgical/weights/best.onnx --source 0
 
 ---
 
+## Step 4 — Web frontend (optional)
+
+A small browser UI for uploading an image or video and viewing the annotated
+output with bounding boxes + counts. Built with FastAPI (backend) and vanilla
+HTML/CSS/JS (frontend — no Node build step). It **reuses the existing functions
+in `infer.py`** (`run_on_frame`, `draw_count_panel`, `CLASS_NAMES`, `PALETTE`).
+
+### Install (one-time, inside your anaconda env)
+
+```bash
+~/anaconda3/bin/pip install -r requirements.txt
+```
+
+### Run
+
+From the project root:
+
+```bash
+~/anaconda3/bin/python -m uvicorn webapp.main:app --port 8000
+```
+
+Open http://localhost:8000 in any browser.
+
+- **Image tab** — drop / browse an image → click *Detect instruments* → original
+  and annotated images are shown side by side with a counts panel.
+- **Video tab** — drop / browse a video → click *Process video* → an annotated
+  MP4 (playable + downloadable) and per-class counts are shown.
+
+### Weights
+
+The app auto-selects `runs/surgical/weights/best.pt` if present, otherwise
+falls back to the shipped `pre-trained_weights/best.pt`. Override with:
+
+```bash
+WEIGHTS=/path/to/best.pt ~/anaconda3/bin/python -m uvicorn webapp.main:app --port 8000
+```
+
+### Endpoints
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET  | `/api/health` | Model status + class list |
+| POST | `/api/infer/image?conf=&iou=` | multipart `file` → JSON `{image, counts, total}` |
+| POST | `/api/infer/video?conf=&iou=` | multipart `file` → annotated `video/mp4` (counts in `X-Counts` header) |
+
+---
+
 ## Troubleshooting
 
 **"Weights not found" error**

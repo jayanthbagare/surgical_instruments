@@ -1,0 +1,14 @@
+# ── Web frontend dependencies ────────────────────────────────────────────────
+# Install these inside the anaconda env that already has ultralytics/torch/cv2:
+#   ~/anaconda3/bin/pip install -r requirements.txt
+#
+fastapi>=0.110
+uvicorn[standard]>=0.27
+python-multipart>=0.0.9
+
+# ── ML dependencies (already present if infer.py runs) ───────────────────────
+# Listed for completeness / fresh installs.
+ultralytics>=8.1
+opencv-python>=4.8
+numpy>=1.24
+torch

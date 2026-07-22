@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Surgical Instrument Detector</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">⚙</span>
+      <div>
+        <h1>Surgical Instrument Detector</h1>
+        <p class="sub">Upload an image or video — detections are drawn with bounding boxes & counts.</p>
+      </div>
+    </div>
+    <div id="status" class="status loading">Checking backend…</div>
+  </header>
+
+  <main class="container">
+    <nav class="tabs" role="tablist">
+      <button id="tab-image" class="tab active" role="tab" aria-selected="true">Image</button>
+      <button id="tab-video" class="tab" role="tab" aria-selected="false">Video</button>
+    </nav>
+
+    <!-- ── Image panel ─────────────────────────────────────────────── -->
+    <section id="panel-image" class="panel active">
+      <div id="img-drop" class="dropzone" tabindex="0">
+        <input id="img-input" type="file" accept="image/*" hidden />
+        <div class="dz-inner">
+          <div class="dz-icon">🖼️</div>
+          <p class="dz-title">Drop an image here or <span class="link">browse</span></p>
+          <p class="dz-hint">JPG · PNG · BMP · WEBP · TIFF — up to 25&nbsp;MB</p>
+        </div>
+      </div>
+
+      <div id="img-settings" class="settings">
+        <label>Confidence <input id="img-conf" type="range" min="0" max="1" step="0.05" value="0.35" /><span id="img-conf-v">0.35</span></label>
+        <label>IoU <input id="img-iou" type="range" min="0" max="1" step="0.05" value="0.45" /><span id="img-iou-v">0.45</span></label>
+      </div>
+
+      <button id="img-run" class="btn primary" disabled>Detect instruments</button>
+
+      <div id="img-results" class="results hidden">
+        <div class="pair">
+          <figure>
+            <figcaption>Original</figcaption>
+            <img id="img-original" alt="original" />
+          </figure>
+          <figure>
+            <figcaption>Detections</figcaption>
+            <img id="img-annotated" alt="annotated" />
+          </figure>
+        </div>
+        <div id="img-counts" class="counts"></div>
+      </div>
+    </section>
+
+    <!-- ── Video panel ─────────────────────────────────────────────── -->
+    <section id="panel-video" class="panel hidden">
+      <div id="vid-drop" class="dropzone" tabindex="0">
+        <input id="vid-input" type="file" accept="video/*" hidden />
+        <div class="dz-inner">
+          <div class="dz-icon">🎬</div>
+          <p class="dz-title">Drop a video here or <span class="link">browse</span></p>
+          <p class="dz-hint">MP4 · MOV · AVI · MKV · WEBM — up to 250&nbsp;MB</p>
+        </div>
+      </div>
+
+      <div id="vid-settings" class="settings">
+        <label>Confidence <input id="vid-conf" type="range" min="0" max="1" step="0.05" value="0.35" /><span id="vid-conf-v">0.35</span></label>
+        <label>IoU <input id="vid-iou" type="range" min="0" max="1" step="0.05" value="0.45" /><span id="vid-iou-v">0.45</span></label>
+      </div>
+
+      <button id="vid-run" class="btn primary" disabled>Process video</button>
+
+      <div id="vid-results" class="results hidden">
+        <video id="vid-annotated" controls playsinline></video>
+        <div class="vid-actions">
+          <a id="vid-download" class="btn" download>⬇ Download annotated video</a>
+          <span id="vid-meta" class="meta"></span>
+        </div>
+        <div id="vid-counts" class="counts"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

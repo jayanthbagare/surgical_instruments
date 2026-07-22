@@ -2,9 +2,10 @@
 "use strict";
 
 const API = {
-  health: "/api/health",
-  image:  "/api/infer/image",
-  video:  "/api/infer/video",
+  health:      "/api/health",
+  image:       "/api/infer/image",
+  video:       "/api/infer/video",
+  testImages:  "/api/test-images",
 };
 
 // ── small helpers ──────────────────────────────────────────────────
@@ -181,6 +182,50 @@ function onImageFile(file) {
   $("img-run").disabled = false;
 }
 
+// ── sample images gallery ──────────────────────────────────────────
+async function loadSamples() {
+  const wrap = $("samples");
+  const grid = $("samples-grid");
+  try {
+    const res = await fetch(API.testImages);
+    if (!res.ok) throw new Error("bad status");
+    const data = await res.json();
+    const imgs = data.images || [];
+    if (!imgs.length) return;
+    grid.innerHTML = "";
+    imgs.forEach((img) => {
+      const btn = document.createElement("button");
+      btn.className = "sample";
+      btn.type = "button";
+      btn.title = img.name;
+      btn.innerHTML = `<img src="${img.url}" alt="${img.name}" loading="lazy" /><span class="sample-name">${img.name}</span>`;
+      btn.addEventListener("click", () => pickSample(img));
+      grid.appendChild(btn);
+    });
+    wrap.classList.remove("hidden");
+  } catch (e) {
+    // Samples are a convenience — stay quiet if unavailable.
+  }
+}
+
+async function pickSample(img) {
+  try {
+    const res = await fetch(img.url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const blob = await res.blob();
+    const file = new File([blob], img.name, { type: blob.type || "image/jpeg" });
+    onImageFile(file);
+    document.querySelectorAll(".sample").forEach((s) => s.classList.remove("selected"));
+    const el = Array.from(document.querySelectorAll(".sample")).find(
+      (s) => s.title === img.name
+    );
+    if (el) el.classList.add("selected");
+    toast(`Loaded sample "${img.name}".`);
+  } catch (e) {
+    toast("Could not load sample image: " + e.message, true);
+  }
+}
+
 async function runImage() {
   if (!imageFile) return;
   const btn = $("img-run");
@@ -266,4 +311,5 @@ document.addEventListener("DOMContentLoaded", () => {
   $("img-run").addEventListener("click", runImage);
   $("vid-run").addEventListener("click", runVideo);
   checkHealth();
+  loadSamples();
 });

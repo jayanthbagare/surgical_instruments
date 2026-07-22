@@ -110,7 +110,27 @@ def _cleanup(path: Path) -> None:
 app = FastAPI(title="Surgical Instrument Detector", version="1.0.0")
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
+TEST_IMAGES_DIR = _REPO_ROOT / "test_images"
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+# Serve the sample images so the frontend can render thumbnails.
+if TEST_IMAGES_DIR.exists():
+    app.mount("/test-images", StaticFiles(directory=TEST_IMAGES_DIR), name="test-images")
+
+
+@app.get("/api/test-images")
+def test_images():
+    """List the sample images shipped under ``test_images/`` at the repo root."""
+    if not TEST_IMAGES_DIR.exists():
+        return {"images": []}
+    images = [
+        {
+            "name": p.name,
+            "url": f"/test-images/{p.name}",
+        }
+        for p in sorted(TEST_IMAGES_DIR.iterdir())
+        if p.is_file() and p.suffix.lower() in IMG_EXTS
+    ]
+    return {"images": images}
 
 
 @app.get("/api/health")

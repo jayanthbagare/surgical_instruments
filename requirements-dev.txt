@@ -1,0 +1,4 @@
+# Test dependencies — install in addition to requirements.txt:
+#   uv pip install -r requirements-dev.txt
+pytest>=8.0
+httpx>=0.27

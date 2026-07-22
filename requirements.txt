@@ -1,14 +1,26 @@
-# ── Web frontend dependencies ────────────────────────────────────────────────
-# Install these inside the anaconda env that already has ultralytics/torch/cv2:
-#   ~/anaconda3/bin/pip install -r requirements.txt
+# ── Install with uv (creates/uses .venv automatically) ────────────────────────
+#   uv venv
+#   uv pip install -r requirements.txt
+#   uv pip install -r requirements-dev.txt   # tests only
 #
+# Run the server:
+#   uv run python -m uvicorn webapp.main:app --port 8000
+
+# ── Web frontend dependencies ────────────────────────────────────────────────
 fastapi>=0.110
 uvicorn[standard]>=0.27
 python-multipart>=0.0.9
 
-# ── ML dependencies (already present if infer.py runs) ───────────────────────
-# Listed for completeness / fresh installs.
-ultralytics>=8.1
-opencv-python>=4.8
+# ── ML dependencies ──────────────────────────────────────────────────────────
 numpy>=1.24
 torch
+ultralytics>=8.1
+
+# IMPORTANT: opencv-python-headless MUST come after ultralytics.
+# ultralytics declares a dependency on the GUI variant (opencv-python), which
+# needs system libraries (libxcb/libGL) that are absent on headless servers and
+# cause:  ImportError: libxcb.so.1: cannot open shared object file.
+# The headless build provides the same cv2 API for image/video processing with
+# no system-library dependencies. It is listed last so it overrides the GUI
+# build pulled in transitively by ultralytics.
+opencv-python-headless>=4.8

@@ -259,6 +259,12 @@ Open http://localhost:8000 in any browser.
 - **Video tab** — drop / browse a video → click *Process video* → an annotated
   MP4 (playable + downloadable) and per-class counts are shown.
 
+> Note: tab visibility is driven by the `.panel` / `.panel.active` CSS rules.
+> Do **not** add a `hidden` class to a `<section class="panel">` —
+> `.hidden { display:none !important }` overrides `.panel.active` and the tab
+> will appear blank. The tab switcher in `app.js` toggles both `active` and
+> `hidden` defensively.
+
 ### Weights
 
 The app auto-selects `runs/surgical/weights/best.pt` if present, otherwise

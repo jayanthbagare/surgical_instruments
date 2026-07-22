@@ -71,9 +71,13 @@ function setupTabs() {
   tabs.forEach(([tabId, panelId]) => {
     $(tabId).addEventListener("click", () => {
       tabs.forEach(([t, p]) => {
-        $(t).classList.toggle("active", t === tabId);
-        $(t).setAttribute("aria-selected", t === tabId ? "true" : "false");
+        const active = t === tabId;
+        $(t).classList.toggle("active", active);
+        $(t).setAttribute("aria-selected", active ? "true" : "false");
+        // Use both `active` and `hidden` so the panel's visibility does not
+        // depend on which class the markup happened to ship with.
         $(p).classList.toggle("active", p === panelId);
+        $(p).classList.toggle("hidden", p !== panelId);
       });
     });
   });

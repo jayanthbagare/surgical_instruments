@@ -47,6 +47,28 @@ PALETTE = rng.integers(80, 220, size=(len(CLASS_NAMES), 3)).tolist()
 IMG_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".webp"}
 
 
+def _has_gui() -> bool:
+    """True if OpenCV can open a window.
+
+    ``opencv-python-headless`` (used by the webapp / servers) ships the highgui
+    symbols but ``imshow`` raises ``cv2.error`` at call time. Probe once so the
+    interactive viewer is skipped cleanly and batch processing / ``--save``
+    keep working without a display.
+    """
+    try:
+        cv2.imshow(".__probe__", np.zeros((1, 1, 3), np.uint8))
+    except cv2.error:
+        return False
+    try:
+        cv2.destroyWindow(".__probe__")
+    except cv2.error:
+        pass
+    return True
+
+
+HAS_GUI = _has_gui()
+
+
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--source",  default="0",
@@ -135,6 +157,12 @@ def infer_stream(model, source, conf, iou, save):
         print(f"[ERROR] Cannot open source: {source}")
         return
 
+    if not HAS_GUI and source.isdigit() and not save:
+        print("[ERROR] Live camera needs a display. Run on a machine with a GUI,")
+        print("        or use --save to write the annotated stream to a file.")
+        cap.release()
+        return
+
     # Set up writer if saving
     writer = None
     if save and not str(source).isdigit():
@@ -146,6 +174,10 @@ def infer_stream(model, source, conf, iou, save):
         h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         writer = cv2.VideoWriter(str(out_path), fourcc, fps_src, (w, h))
         print(f"Saving to {out_path}")
+
+    if not HAS_GUI:
+        print("[info] No display detected — processing without preview "
+              "(press Ctrl-C to stop).")
 
     t_prev = time.perf_counter()
     while True:
@@ -160,19 +192,20 @@ def infer_stream(model, source, conf, iou, save):
         t_prev = t_now
 
         draw_count_panel(frame, counts, fps)
-        cv2.imshow("Surgical Instrument Detector  [q / Esc = quit]", frame)
+        if HAS_GUI:
+            cv2.imshow("Surgical Instrument Detector  [q / Esc = quit]", frame)
 
         if writer:
             writer.write(frame)
 
-        key = cv2.waitKey(1) & 0xFF
-        if key in (ord("q"), 27):
+        if HAS_GUI and cv2.waitKey(1) & 0xFF in (ord("q"), 27):
             break
 
     cap.release()
     if writer:
         writer.release()
-    cv2.destroyAllWindows()
+    if HAS_GUI:
+        cv2.destroyAllWindows()
 
 
 def infer_images(model, source, conf, iou, save):
@@ -200,11 +233,14 @@ def infer_images(model, source, conf, iou, save):
             cv2.imwrite(str(out), frame)
             print(f"  Saved {out}")
 
-        cv2.imshow(img_path.name, frame)
-        key = cv2.waitKey(0) & 0xFF
-        cv2.destroyAllWindows()
-        if key in (ord("q"), 27):
-            break
+        if HAS_GUI:
+            cv2.imshow(img_path.name, frame)
+            key = cv2.waitKey(0) & 0xFF
+            cv2.destroyAllWindows()
+            if key in (ord("q"), 27):
+                break
+        elif not save:
+            print("  (no display; re-run with --save to keep annotated images)")
 
 
 # ── entry point ───────────────────────────────────────────────────────────────

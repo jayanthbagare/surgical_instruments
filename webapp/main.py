@@ -13,7 +13,7 @@ POST /api/infer/video       -> multipart "file" -> annotated mp4 (X-Counts heade
 GET  /                      -> serves the frontend (webapp/static)
 
 Run (from repo root):
-    ~/anaconda3/bin/python -m uvicorn webapp.main:app --reload --port 8000
+    uv run python -m uvicorn webapp.main:app --reload --port 8000
 """
 
 from __future__ import annotations

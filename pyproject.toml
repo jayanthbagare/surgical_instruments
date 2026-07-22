@@ -1,0 +1,18 @@
+[project]
+name = "surgical-instruments"
+version = "1.0.0"
+description = "Offline surgical instrument detector (YOLOv8) with CLI inference and a FastAPI web app"
+readme = "USAGE_GUIDE.md"
+requires-python = ">=3.10"
+
+# NOTE: runtime dependencies live in requirements.txt (not here).
+# ultralytics declares a dependency on the GUI `opencv-python`, which conflicts
+# with the `opencv-python-headless` build this project uses for the server.
+# Keeping deps in requirements.txt (installed with `uv pip install -r`) lets the
+# headless build override the GUI one transitively. Declaring them here would
+# make `uv sync` attempt to install both, clobbering `cv2`.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["."]

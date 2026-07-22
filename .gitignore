@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# uv
+uv.lock
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Training / inference outputs
+runs/
+yolo_dataset/
+*_detected.*

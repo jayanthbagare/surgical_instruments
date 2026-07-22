@@ -21,13 +21,26 @@ Runs **fully offline** — no internet connection required in the operating thea
 
 ## Requirements
 
-All dependencies are in the Anaconda environment on this machine.  
-**Always use `~/anaconda3/bin/python`**, not the system Python.
+Dependencies are managed with [`uv`](https://docs.astral.sh/uv/) and pinned in
+`requirements.txt` (web app + ML) and `requirements-dev.txt` (tests).
 
 ```bash
-# One-time check
-~/anaconda3/bin/python -c "import ultralytics, cv2, torch; print('OK')"
+# One-time setup — creates .venv and installs everything
+uv venv
+uv pip install -r requirements.txt
+uv pip install -r requirements-dev.txt   # only needed to run tests
+
+# Sanity check (no imports errors)
+uv run python -c "import ultralytics, cv2, torch; print('OK')"
 ```
+
+> **Why `opencv-python-headless`?** The server uses the headless OpenCV build,
+> which has no system-library dependencies (`libxcb`, `libGL`, …). The GUI
+> variant (`opencv-python`) — pulled in transitively by `ultralytics` — fails to
+> import on headless servers with `ImportError: libxcb.so.1`. `requirements.txt`
+> lists `opencv-python-headless` *after* `ultralytics` so it wins. The CLI
+> (`infer.py`) detects the absence of a display and skips the preview window,
+> so batch processing and `--save` still work.
 
 ---
 
@@ -36,14 +49,13 @@ All dependencies are in the Anaconda environment on this machine.
 Converts the Pascal VOC XML annotations to YOLO format and writes `yolo_dataset/`.
 
 ```bash
-cd /
-~/anaconda3/bin/python prepare_dataset.py
+uv run python prepare_dataset.py
 ```
 
 Expected output:
 ```
-Converted 411 samples → //yolo_dataset
-Wrote /yolo_dataset/dataset.yaml
+Converted 411 samples → yolo_dataset
+Wrote yolo_dataset/dataset.yaml
 ```
 
 This step is already done — only re-run if you add new images/annotations.
@@ -53,8 +65,7 @@ This step is already done — only re-run if you add new images/annotations.
 ## Step 2 — Train the model
 
 ```bash
-cd /
-~/anaconda3/bin/python train.py
+uv run python train.py
 ```
 
 ### Recommended settings by hardware
@@ -102,7 +113,7 @@ Training on Apple Silicon (M1/M2/M3) typically takes:
 ### Live camera (operating theatre)
 
 ```bash
-~/anaconda3/bin/python infer.py --source 0
+uv run python infer.py --source 0
 ```
 
 - `0` = built-in webcam. Change to `1`, `2` etc. for an external USB camera.
@@ -111,7 +122,7 @@ Training on Apple Silicon (M1/M2/M3) typically takes:
 ### Single image
 
 ```bash
-~/anaconda3/bin/python infer.py --source path/to/image.jpg
+uv run python infer.py --source path/to/image.jpg
 ```
 
 Press any key to advance, **q** to quit.
@@ -119,13 +130,13 @@ Press any key to advance, **q** to quit.
 ### Folder of images
 
 ```bash
-~/anaconda3/bin/python infer.py --source path/to/folder/
+uv run python infer.py --source path/to/folder/
 ```
 
 ### Video file
 
 ```bash
-~/anaconda3/bin/python infer.py --source path/to/video.mp4
+uv run python infer.py --source path/to/video.mp4
 ```
 
 ### Save annotated output
@@ -133,14 +144,14 @@ Press any key to advance, **q** to quit.
 Add `--save` to write annotated files alongside the originals:
 
 ```bash
-~/anaconda3/bin/python infer.py --source video.mp4 --save
+uv run python infer.py --source video.mp4 --save
 # → saves video_detected.mp4
 ```
 
 ### Use a specific model
 
 ```bash
-~/anaconda3/bin/python infer.py \
+uv run python infer.py \
   --source 0 \
   --weights runs/surgical/weights/best.pt
 ```
@@ -154,10 +165,10 @@ Add `--save` to write annotated files alongside the originals:
 
 ```bash
 # Stricter — fewer but more confident detections
-~/anaconda3/bin/python infer.py --source 0 --conf 0.5
+uv run python infer.py --source 0 --conf 0.5
 
 # More permissive — catches partially hidden instruments
-~/anaconda3/bin/python infer.py --source 0 --conf 0.25
+uv run python infer.py --source 0 --conf 0.25
 ```
 
 ---
@@ -227,10 +238,10 @@ output with bounding boxes + counts. Built with FastAPI (backend) and vanilla
 HTML/CSS/JS (frontend — no Node build step). It **reuses the existing functions
 in `infer.py`** (`run_on_frame`, `draw_count_panel`, `CLASS_NAMES`, `PALETTE`).
 
-### Install (one-time, inside your anaconda env)
+### Install (one-time)
 
 ```bash
-~/anaconda3/bin/pip install -r requirements.txt
+uv pip install -r requirements.txt
 ```
 
 ### Run
@@ -238,7 +249,7 @@ in `infer.py`** (`run_on_frame`, `draw_count_panel`, `CLASS_NAMES`, `PALETTE`).
 From the project root:
 
 ```bash
-~/anaconda3/bin/python -m uvicorn webapp.main:app --port 8000
+uv run python -m uvicorn webapp.main:app --port 8000
 ```
 
 Open http://localhost:8000 in any browser.
@@ -254,7 +265,7 @@ The app auto-selects `runs/surgical/weights/best.pt` if present, otherwise
 falls back to the shipped `pre-trained_weights/best.pt`. Override with:
 
 ```bash
-WEIGHTS=/path/to/best.pt ~/anaconda3/bin/python -m uvicorn webapp.main:app --port 8000
+WEIGHTS=/path/to/best.pt uv run python -m uvicorn webapp.main:app --port 8000
 ```
 
 ### Endpoints
@@ -268,6 +279,13 @@ WEIGHTS=/path/to/best.pt ~/anaconda3/bin/python -m uvicorn webapp.main:app --por
 ---
 
 ## Troubleshooting
+
+**`ImportError: libxcb.so.1: cannot open shared object file` (server won't start)**
+→ The GUI `opencv-python` build (pulled in by `ultralytics`) needs system
+  libraries that headless servers don't have. `requirements.txt` lists
+  `opencv-python-headless` *after* `ultralytics` so it overrides the GUI build.
+  Re-install in order: `uv pip install -r requirements.txt`. Confirm with
+  `uv run python -c "import cv2"`.
 
 **"Weights not found" error**
 → Run `train.py` first to generate `runs/surgical/weights/best.pt`.
@@ -286,3 +304,16 @@ WEIGHTS=/path/to/best.pt ~/anaconda3/bin/python -m uvicorn webapp.main:app --por
 **Slow frame rate on camera**
 → `yolov8n` (nano) is already the fastest variant. Reduce `--imgsz 320` for more speed  
   at the cost of some accuracy.
+
+---
+
+## Tests
+
+```bash
+uv pip install -r requirements-dev.txt
+uv run pytest
+```
+
+Covers the FastAPI endpoints (`/api/health`, image inference) and the
+`infer.py` drawing/count helpers. The model is stubbed, so tests run fully
+offline without weights or a GPU.

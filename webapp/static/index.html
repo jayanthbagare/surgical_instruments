@@ -26,6 +26,12 @@
 
     <!-- ── Image panel ─────────────────────────────────────────────── -->
     <section id="panel-image" class="panel active">
+      <div id="samples" class="samples hidden">
+        <h3 class="samples-title">Sample images</h3>
+        <p class="samples-hint">Click a sample to load it, then run detection.</p>
+        <div id="samples-grid" class="samples-grid"></div>
+      </div>
+
       <div id="img-drop" class="dropzone" tabindex="0">
         <input id="img-input" type="file" accept="image/*" hidden />
         <div class="dz-inner">
